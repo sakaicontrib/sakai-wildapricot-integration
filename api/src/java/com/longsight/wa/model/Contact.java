@@ -32,4 +32,6 @@ public class Contact {
 	private String profileLastUpdated;
 	@JsonProperty("MembershipLevel")
 	private MembershipLevel membershipLevel;
+	@JsonProperty("Status")
+	private String status;
 }

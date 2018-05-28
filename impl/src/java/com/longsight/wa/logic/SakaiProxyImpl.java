@@ -37,65 +37,47 @@ import org.sakaiproject.user.api.UserNotDefinedException;
 @Slf4j
 public class SakaiProxyImpl implements SakaiProxy {
 
-	/**
- 	* {@inheritDoc}
- 	*/
+	@Override
 	public String getCurrentUserId() {
 		return sessionManager.getCurrentSessionUserId();
 	}
 
-	/**
- 	* {@inheritDoc}
- 	*/
+	@Override
 	public String getCurrentUserDisplayName() {
 	   return userDirectoryService.getCurrentUser().getDisplayName();
 	}
 
-	/**
- 	* {@inheritDoc}
- 	*/
+	@Override
 	public boolean isSuperUser() {
 		return securityService.isSuperUser();
 	}
 
-	/**
- 	* {@inheritDoc}
- 	*/
+	@Override
 	public void postEvent(String event,String reference,boolean modify) {
 		eventTrackingService.post(eventTrackingService.newEvent(event,reference,modify));
 	}
 
-	/**
- 	* {@inheritDoc}
- 	*/
+	@Override
 	public boolean getConfigParam(String param, boolean dflt) {
 		return serverConfigurationService.getBoolean(param, dflt);
 	}
 
-	/**
- 	* {@inheritDoc}
- 	*/
+	@Override
 	public String getConfigParam(String param, String dflt) {
 		return serverConfigurationService.getString(param, dflt);
 	}
 
-	/**
- 	* {@inheritDoc}
- 	*/
+	@Override
 	public String[] getConfigParam(String param){
 		return serverConfigurationService.getStrings(param);
 	}
 
-	/**
- 	* {@inheritDoc}
- 	*/
+	@Override
 	public int getConfigParam(String param, int dflt){
 		return serverConfigurationService.getInt(param, dflt);
 	}
 
-	/**
- 	* {@inheritDoc}
- 	*/
+	@Override
 	public boolean establishSession(String userEid){
 		Session session = sessionManager.getCurrentSession();
 		try{
@@ -108,47 +90,18 @@ public class SakaiProxyImpl implements SakaiProxy {
 		return false;
 	}
 
-	/**
- 	* {@inheritDoc}
- 	*/
+	@Override
 	public void invalidateCurrentSession(){
 		Session session = sessionManager.getCurrentSession();
 		session.invalidate();
 	}
 
-	/**
- 	* {@inheritDoc}
- 	*/
+	@Override
 	public boolean isValidSite(String siteId){
 		return siteService.siteExists(siteId);
 	}
 
-	/**
- 	* {@inheritDoc}
- 	*/
-	public boolean copySite(String templateSiteId, String siteId, String siteTitle){
-		Site site;
-		try {
-			site = siteService.getSite(templateSiteId);
-			Site siteEdit = siteService.addSite(siteId, site);
-			siteEdit.setTitle(siteTitle);
-			siteService.save(siteEdit);
-			return true;
-		} catch (IdUsedException e) {
-			log.error("IdUsedException copying the site "+e);
-		} catch (IdUnusedException e) {
-			log.error("IdUnusedException copying the site "+e);
-		} catch (PermissionException e) {
-			log.error("PermissionException copying the site "+e);
-		} catch (IdInvalidException e) {
-			log.error("IdInvalidException copying the site "+e);
-		}
-		return false;
-	}
-
-	/**
- 	* {@inheritDoc}
- 	*/
+	@Override
 	public void sendEmailToUsers(String[] recipients, String subject, String content){
 		Collection<User> userCollection = convertUserStringArrayToUserCollection(recipients);
 		Collection<String> subjectCollection = new HashSet<String>();
@@ -168,16 +121,12 @@ public class SakaiProxyImpl implements SakaiProxy {
 		return userCollection;
 	}
 
-	/**
- 	* {@inheritDoc}
- 	*/
+	@Override
 	public String getServerName(){
 		return serverConfigurationService.getServerName();
 	}
 
-	/**
- 	* {@inheritDoc}
- 	*/
+	@Override
 	public boolean addMemberToSite(String siteId, String userEid, String roleId, boolean active){
 		try{
 			Site siteEdit = null;
@@ -192,9 +141,7 @@ public class SakaiProxyImpl implements SakaiProxy {
 		return false;
 	}
 
-	/**
- 	* {@inheritDoc}
- 	*/
+	@Override
 	public boolean removeMemberFromSite(String siteId, String userEid){
 		try{
 			Site siteEdit = null;
@@ -209,9 +156,7 @@ public class SakaiProxyImpl implements SakaiProxy {
 		return false;
 	}
 
-	/**
- 	* {@inheritDoc}
- 	*/
+	@Override
 	public boolean userEidExists(String userEid){
 		try{
 			userDirectoryService.getUserByEid(userEid);
@@ -221,9 +166,7 @@ public class SakaiProxyImpl implements SakaiProxy {
 		return false;
 	}
 
-	/**
- 	* {@inheritDoc}
- 	*/
+	@Override
 	public boolean userIdExists(String userId){
 		try{
 			userDirectoryService.getUser(userId);
@@ -233,9 +176,7 @@ public class SakaiProxyImpl implements SakaiProxy {
 		return false;
 	}
 
-	/**
- 	* {@inheritDoc}
- 	*/
+	@Override
 	public boolean isValidRole(String siteId, String roleId){
 		try{
 			Site siteEdit = null;
@@ -248,9 +189,7 @@ public class SakaiProxyImpl implements SakaiProxy {
 		return false;
 	}
 
-	/**
- 	* {@inheritDoc}
- 	*/
+	@Override
 	public boolean addUser(String userEid, String firstName, String lastName, String email, String password, String type){
 		try{
 			userDirectoryService.addUser(null, userEid, firstName, lastName, email, password, type, null);
@@ -261,9 +200,7 @@ public class SakaiProxyImpl implements SakaiProxy {
 		return false;
 	}
 	
-	/**
- 	* {@inheritDoc}
- 	*/
+	@Override
 	public boolean updateUser(String userEid, String firstName, String lastName, String email){
 		try{
 			User user = userDirectoryService.getUserByEid(userEid);
@@ -281,9 +218,7 @@ public class SakaiProxyImpl implements SakaiProxy {
 		return false;
 	}
 
-	/**
- 	* {@inheritDoc}
- 	*/
+	@Override
 	public String getUserIdFromEid(String userEid){
 		try{
 			return userDirectoryService.getUserByEid(userEid).getId();
@@ -293,9 +228,7 @@ public class SakaiProxyImpl implements SakaiProxy {
 		return null;
  	}
 
-		/**
- 	* {@inheritDoc}
- 	*/
+	@Override
 	public String getUserEidFromId(String userId){
 		try{
 			return userDirectoryService.getUser(userId).getEid();
@@ -321,6 +254,41 @@ public class SakaiProxyImpl implements SakaiProxy {
             log.error("setUserProperties: Error setting the properties for the userEid {} - {}", userEid, e.toString());
         }
 		return false;
+	}
+	
+	@Override
+	public boolean isUserEnabled(String userEid) {
+		UserEdit editUser = null;
+		try {
+            User user = userDirectoryService.getUserByEid(userEid);
+            editUser = userDirectoryService.editUser(user.getId());
+            boolean status = editUser.getProperties().getBooleanProperty(SakaiWAConstants.SAKAI_STATUS_PROPERTY);
+            userDirectoryService.cancelEdit(editUser);
+            return status;
+        } catch (Exception e) {
+        	userDirectoryService.cancelEdit(editUser);
+            log.error("setUserProperties: Error setting the properties for the userEid {} - {}", userEid, e.toString());
+        }
+		return false;		
+	}
+
+	@Override
+	public boolean setUserStatus(String userEid, boolean enabled) {
+		UserEdit editUser = null;
+		try {
+            User user = userDirectoryService.getUserByEid(userEid);
+            editUser = userDirectoryService.editUser(user.getId());
+            editUser.getProperties().removeProperty(SakaiWAConstants.SAKAI_STATUS_PROPERTY);
+			if(!enabled){
+				editUser.getProperties().addProperty(SakaiWAConstants.SAKAI_STATUS_PROPERTY, "true");
+			}
+            userDirectoryService.commitEdit(editUser);
+            return true;
+        } catch (Exception e) {
+        	userDirectoryService.cancelEdit(editUser);
+            log.error("setUserProperties: Error setting the properties for the userEid {} - {}", userEid, e.toString());
+        }
+		return false;		
 	}
 
 	/**

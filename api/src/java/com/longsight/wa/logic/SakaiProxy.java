@@ -147,6 +147,18 @@ public interface SakaiProxy {
 	public boolean updateUser(String userEid, String firstName, String lastName, String email);
 	
 	/**
+	 * Gets the user status
+	 * @return true if the user is enabled, false otherwise
+	 */
+	public boolean isUserEnabled(String userEid);
+
+	/**
+	 * Sets the user status to enabled/disabled
+	 * @return true if was edited successfully, false if failed
+	 */
+	public boolean setUserStatus(String userEid, boolean enabled);
+	
+	/**
 	 * Gets the userId from the Eid.
 	 * @return userId as string, null if not exists
 	 */

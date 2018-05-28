@@ -128,6 +128,13 @@ public class WAContactsSyncJob implements Job {
 
         		//Update the user properties
         		if(updateUserProperties) {
+        			
+        			//Update the user status (Enabled / disabled)
+        			log.info("--------Setting the status {} for the contact {} ", contact.getStatus(), contact);
+        			sakaiProxy.setUserStatus(contact.getEmail(), SakaiWAConstants.WA_ACTIVE_STATUS.equals(contact.getStatus()) );
+        			
+        			//Update the extra properties.
+        			log.info("--------Setting the extra properties for the contact {} ", contact);
         			Map <String, String> userProperties = new HashMap<String, String>();
         			if(StringUtils.isNotEmpty(contact.getOrganization())) {
         				userProperties.put(SakaiWAConstants.USER_ORGANIZATION_PROPERTY, contact.getOrganization());

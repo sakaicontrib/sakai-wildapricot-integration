@@ -12,4 +12,8 @@ public class SakaiWAConstants {
 	
 	public static final String USER_ORGANIZATION_PROPERTY = "wa-organization";
 	public static final String USER_MEMBERSHIPLEVEL_PROPERTY = "wa-membershiplevel";
+	
+	public static final String WA_ACTIVE_STATUS = "Active";
+	
+	public static final String SAKAI_STATUS_PROPERTY = "disabled";
 }
