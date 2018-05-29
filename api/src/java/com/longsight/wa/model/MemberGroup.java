@@ -14,16 +14,16 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class MemberGroup {
-	@JsonProperty("Id")
-	private String id;
-	@JsonProperty("Url")
-	private String url;
-	@JsonProperty("Name")
-	private String name;
-	@JsonProperty("Description")
-	private String description;
-	@JsonProperty("ContactsCount")
-	private int contactsCount;
-	@JsonProperty("ContactIds")
-	private List<String> contactIds;	
+    @JsonProperty("Id")
+    private String id;
+    @JsonProperty("Url")
+    private String url;
+    @JsonProperty("Name")
+    private String name;
+    @JsonProperty("Description")
+    private String description;
+    @JsonProperty("ContactsCount")
+    private int contactsCount;
+    @JsonProperty("ContactIds")
+    private List<String> contactIds;    
 }

@@ -14,14 +14,14 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Account {
-	@JsonProperty("Id")
-	private String id;
-	@JsonProperty("Url")
-	private String url;
-	@JsonProperty("PrimaryDomainName")
-	private String primaryDomainName;
-	@JsonProperty("Resources")
-	private List<Resource> resources;
-	@JsonProperty("Name")
-	private String name;
+    @JsonProperty("Id")
+    private String id;
+    @JsonProperty("Url")
+    private String url;
+    @JsonProperty("PrimaryDomainName")
+    private String primaryDomainName;
+    @JsonProperty("Resources")
+    private List<Resource> resources;
+    @JsonProperty("Name")
+    private String name;
 }

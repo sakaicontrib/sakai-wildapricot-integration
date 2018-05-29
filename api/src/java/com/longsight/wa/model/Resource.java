@@ -14,10 +14,10 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Resource {
-	@JsonProperty("Name")
-	private String name;
-	@JsonProperty("Url")
+    @JsonProperty("Name")
+    private String name;
+    @JsonProperty("Url")
     private String url;
-	@JsonProperty("AllowedOperations")
+    @JsonProperty("AllowedOperations")
     private List<String> allowedOperations;
 }

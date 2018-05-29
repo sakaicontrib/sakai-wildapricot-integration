@@ -22,58 +22,58 @@ import com.longsight.wa.model.Contact;
 @NoArgsConstructor
 @Slf4j
 public class ContactProxy {
-	
+    
     public List<Contact> getAllContactsFromAccount(String authToken, String accountId) {
-		ClientConfig config = new ClientConfig();
+        ClientConfig config = new ClientConfig();
 
-		Client client = ClientBuilder.newClient(config);
+        Client client = ClientBuilder.newClient(config);
 
-		WebTarget target = client.target(String.format("https://api.wildapricot.org/v2.1/Accounts/%s/Contacts?$async=false", accountId));
-		Response response = target.request().
-				accept(MediaType.APPLICATION_FORM_URLENCODED).
-		        header("Authorization", "Bearer " + authToken).                
-		        get();
-		
-		String responseString = response.readEntity(String.class);
-		
-		if(response.getStatus() == 200) {
-			try {
-				JSONObject contactsObject = new JSONObject(responseString);
-				JSONArray contactsArray = contactsObject.getJSONArray("Contacts");				
-				Contact[] contacts = new ObjectMapper().readValue(contactsArray.toString(), Contact[].class);
-				return Arrays.asList(contacts);
-			} catch (Exception e) {
-				log.error("Error mapping the response into an List<Contact> {}", e);
-			}
-		}else {
-			log.error("Error code: {} {}", response.getStatus(), responseString);
-		}
-		return new ArrayList<Contact>();
-	}
+        WebTarget target = client.target(String.format("https://api.wildapricot.org/v2.1/Accounts/%s/Contacts?$async=false", accountId));
+        Response response = target.request().
+                accept(MediaType.APPLICATION_FORM_URLENCODED).
+                header("Authorization", "Bearer " + authToken).                
+                get();
+        
+        String responseString = response.readEntity(String.class);
+        
+        if(response.getStatus() == 200) {
+            try {
+                JSONObject contactsObject = new JSONObject(responseString);
+                JSONArray contactsArray = contactsObject.getJSONArray("Contacts");                
+                Contact[] contacts = new ObjectMapper().readValue(contactsArray.toString(), Contact[].class);
+                return Arrays.asList(contacts);
+            } catch (Exception e) {
+                log.error("Error mapping the response into an List<Contact> {}", e);
+            }
+        }else {
+            log.error("Error code: {} {}", response.getStatus(), responseString);
+        }
+        return new ArrayList<Contact>();
+    }
     
     public Contact getContactFromAccount(String authToken, String accountId, String contactId) {
-		ClientConfig config = new ClientConfig();
+        ClientConfig config = new ClientConfig();
 
-		Client client = ClientBuilder.newClient(config);
+        Client client = ClientBuilder.newClient(config);
 
-		WebTarget target = client.target(String.format("https://api.wildapricot.org/v2.1/Accounts/%s/Contacts/%s", accountId, contactId));
-		Response response = target.request().
-				accept(MediaType.APPLICATION_FORM_URLENCODED).
-		        header("Authorization", "Bearer " + authToken).                
-		        get();
-		
-		String responseString = response.readEntity(String.class);
-		
-		if(response.getStatus() == 200) {
-			try {
-				Contact contact = new ObjectMapper().readValue(responseString, Contact.class);
-				return contact;
-			} catch (Exception e) {
-				log.error("Error mapping the response into an List<Contact> {}", e);
-			}
-		}else {
-			log.error("Error code: {} {}", response.getStatus(), responseString);
-		}
-		return null;
-	}
+        WebTarget target = client.target(String.format("https://api.wildapricot.org/v2.1/Accounts/%s/Contacts/%s", accountId, contactId));
+        Response response = target.request().
+                accept(MediaType.APPLICATION_FORM_URLENCODED).
+                header("Authorization", "Bearer " + authToken).                
+                get();
+        
+        String responseString = response.readEntity(String.class);
+        
+        if(response.getStatus() == 200) {
+            try {
+                Contact contact = new ObjectMapper().readValue(responseString, Contact.class);
+                return contact;
+            } catch (Exception e) {
+                log.error("Error mapping the response into an List<Contact> {}", e);
+            }
+        }else {
+            log.error("Error code: {} {}", response.getStatus(), responseString);
+        }
+        return null;
+    }
 }

@@ -39,4 +39,27 @@
         </property>
 
    </bean>
+   
+   <bean id="com.longsight.wa.jobs.WAMemberGroupsSyncJob"
+        class="com.longsight.wa.jobs.WAMemberGroupsSyncJob">
+        <property name="sakaiProxy" ref="com.longsight.wa.logic.SakaiProxy" />
+    </bean>
+
+    <bean id="org.sakaiproject.api.app.scheduler.JobBeanWrapper.com.longsight.wa.jobs.WAMemberGroupsSyncJob"
+        class="org.sakaiproject.component.app.scheduler.jobs.SpringJobBeanWrapper"
+        init-method="init">
+
+        <property name="beanId">
+            <value>com.longsight.wa.jobs.WAMemberGroupsSyncJob</value>
+        </property>
+
+        <property name="jobName">
+            <value>Wild Apricot Member Groups Sync Job</value>
+        </property>
+
+        <property name="schedulerManager">
+            <ref bean="org.sakaiproject.api.app.scheduler.SchedulerManager" />
+        </property>
+
+   </bean>
 </beans>

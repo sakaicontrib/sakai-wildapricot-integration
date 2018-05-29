@@ -14,8 +14,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Permissions {
-	@JsonProperty("AccountId")
-	private String accountId;
-	@JsonProperty("AvailableScopes")
-	private List<String> availableScopes;
+    @JsonProperty("AccountId")
+    private String accountId;
+    @JsonProperty("AvailableScopes")
+    private List<String> availableScopes;
 }

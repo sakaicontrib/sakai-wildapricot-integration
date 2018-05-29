@@ -12,18 +12,18 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class MembershipLevel {
-	@JsonProperty("Id")
-	private String id;
-	@JsonProperty("Url")
-	private String url;
-	@JsonProperty("Name")
-	private String name;
-	@JsonProperty("Description")
-	private String description;
-	@JsonProperty("PublicCanApply")
-	private boolean publicCanApply;
-	@JsonProperty("Type")
-	private String type;
-	@JsonProperty("MembershipFee")
-	private int membershipFee;
+    @JsonProperty("Id")
+    private String id;
+    @JsonProperty("Url")
+    private String url;
+    @JsonProperty("Name")
+    private String name;
+    @JsonProperty("Description")
+    private String description;
+    @JsonProperty("PublicCanApply")
+    private boolean publicCanApply;
+    @JsonProperty("Type")
+    private String type;
+    @JsonProperty("MembershipFee")
+    private int membershipFee;
 }

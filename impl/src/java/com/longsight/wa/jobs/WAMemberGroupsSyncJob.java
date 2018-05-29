@@ -1,8 +1,10 @@
 package com.longsight.wa.jobs;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -18,18 +20,20 @@ import com.longsight.wa.logic.SakaiWAConstants;
 import com.longsight.wa.model.AccessToken;
 import com.longsight.wa.model.Account;
 import com.longsight.wa.model.Contact;
+import com.longsight.wa.model.MemberGroup;
 import com.longsight.wa.proxy.AccountProxy;
 import com.longsight.wa.proxy.AuthenticationProxy;
 import com.longsight.wa.proxy.ContactProxy;
+import com.longsight.wa.proxy.MemberGroupProxy;
 
 /**
- * WA Contacts Sync job
+ * WA MemberGroups Sync job
  *
  * @author Miguel Pellicer (mpellicer@edf.global)
  *
  */
 @Slf4j
-public class WAContactsSyncJob implements Job {
+public class WAMemberGroupsSyncJob implements Job {
 
     public void execute(JobExecutionContext jobExecutionContext) throws JobExecutionException {
         //Abort if there is another execution of the job
@@ -39,14 +43,10 @@ public class WAContactsSyncJob implements Job {
         AuthenticationProxy authenticationProxy = new AuthenticationProxy();
         AccountProxy accountProxy = new AccountProxy();
         ContactProxy contactProxy = new ContactProxy();
+        MemberGroupProxy memberGroupProxy = new MemberGroupProxy();
 
-        //Default variables
-        String defaultUserType = sakaiProxy.getConfigParam(SakaiWAConstants.DEFAULT_USERTYPE_PROPERTY, SakaiWAConstants.DEFAULT_USERTYPE_PROPERTY_VALUE);
-        
         //Control variables
         int total = 0;
-        int successUsers = 0;
-        int failedUsers = 0;
         long startExecutionTime = System.nanoTime();
 
         //Session variables
@@ -57,7 +57,9 @@ public class WAContactsSyncJob implements Job {
             return;
         }
         
-        log.info("-------START Executing WAContactsSyncJob Job-------");
+        Map<String, List<String>> userGroupsMap = new HashMap<String, List<String>>();
+        
+        log.info("-------START Executing WAMemberGroupsSyncJob-------");
         
         /*************************************************
          ********* Getting the auth token*****************
@@ -77,72 +79,69 @@ public class WAContactsSyncJob implements Job {
             return;            
         }
         log.info("--WA authentication token retrieved successfully...");
-        
+
         /*************************************************
          ********* Getting the accounts list**************
          *************************************************/
         log.info("--Getting the contacts list from WA...");
         List<Account> accountList = accountProxy.getAccounts(accessToken.getAccess_token());
-        
+
         log.info("--Found {} accounts in WA.", accountList.size());
-            
+
         for(Account account : accountList) {
             String accountId = account.getId();
-            List<Contact> contactList = contactProxy.getAllContactsFromAccount(accessToken.getAccess_token(), accountId);
-            log.info("----Found {} contacts for the account {}.", contactList.size(), accountId);
-            for(Contact contact : contactList) {
-                log.info("------Found contact: {} ", contact);
+            List<MemberGroup> memberGroups = memberGroupProxy.getMemberGroups(accessToken.getAccess_token(), accountId);
+            log.info("----Found {} memberGroups for the account {}.", memberGroups.size(), accountId);
+            for(MemberGroup memberGroup : memberGroups) {
+                //Groups coming from the method getMemberGroups doesn't contain the contactIds
+                MemberGroup completeMemberGroup = memberGroupProxy.getMemberGroup(accessToken.getAccess_token(), accountId, memberGroup.getId());
+                log.info("------Found memberGroup: {}", completeMemberGroup);
                 total++;
-                boolean updateUserProperties = false;
 
-                if(sakaiProxy.userEidExists(contact.getEmail())) {
-                    //UserEid exists, update it
-                    log.info("--------Contact exists, attempting to update it: {} ", contact);
-                    boolean updated = sakaiProxy.updateUser(contact.getEmail(), contact.getFirstName(), contact.getLastName(), contact.getEmail());
-                    if(updated) {
-                        log.info("--------Contact updated successfully: {} ",contact);
-                        successUsers++;
-                        updateUserProperties = true;
-                    }else {
-                        log.error("--------Error updating the contact: {} ",contact);
-                        failedUsers++;
-                    }
-                }else {
-                    log.info("--------Contact doesn't exist, attempting to create it: {} ", contact);
-                    //UserEid not exists, create it                    
-                    boolean created = sakaiProxy.addUser(contact.getEmail(), contact.getFirstName(), contact.getLastName(), contact.getEmail(), "12345", defaultUserType);
-                    if(created) {
-                        log.info("--------Contact created successfully: {} ",contact);
-                        successUsers++;
-                        updateUserProperties = true;
-                    }else {
-                        log.error("--------Error creating the contact: {} ",contact);
-                        failedUsers++;
-                    }
+                //If the group is empty, just skip it.
+                if(completeMemberGroup.getContactIds() == null) {
+                    continue;
                 }
 
-                //Update the user properties
-                if(updateUserProperties) {
-                    
-                    //Update the user status (Enabled / disabled)
-                    log.info("--------Setting the status {} for the contact {} ", contact.getStatus(), contact);
-                    sakaiProxy.setUserStatus(contact.getEmail(), SakaiWAConstants.WA_ACTIVE_STATUS.equals(contact.getStatus()) );
-                    
-                    //Update the extra properties.
-                    log.info("--------Setting the extra properties for the contact {} ", contact);
-                    Map <String, String> userProperties = new HashMap<String, String>();
-                    if(StringUtils.isNotEmpty(contact.getOrganization())) {
-                        userProperties.put(SakaiWAConstants.USER_ORGANIZATION_PROPERTY, contact.getOrganization());
-                    }
-                    if(contact.getMembershipLevel() != null && StringUtils.isNotEmpty(contact.getMembershipLevel().getId())) {
-                        userProperties.put(SakaiWAConstants.USER_MEMBERSHIPLEVEL_PROPERTY, contact.getMembershipLevel().getId());
-                    }
-                    sakaiProxy.setUserProperties(contact.getEmail(), userProperties);
-                }
+                for(String contactId : completeMemberGroup.getContactIds()) {
+                    List<String> currentGroupsList = userGroupsMap.get(contactId);
 
+                    if(currentGroupsList == null) {
+                        currentGroupsList = new ArrayList<String>();
+                    }
+
+                    currentGroupsList.add(completeMemberGroup.getId());
+                    userGroupsMap.put(contactId, currentGroupsList);
+                }
             }
-        }        
-        
+
+            //Add the current groups to each user
+            for(Entry<String, List<String>> userMap : userGroupsMap.entrySet()) {
+                String contactId = userMap.getKey();
+                List<String> memberGroupIds = userMap.getValue();
+                Contact contact = contactProxy.getContactFromAccount(accessToken.getAccess_token(), accountId, contactId);
+                if(contact !=null) {
+                    Map <String, String> userProperties = new HashMap<String, String>();
+                    String userEid = contact.getEmail();
+                    log.info("------Assign to this user {} these groups {}", userEid, memberGroupIds);
+                    userProperties.put(SakaiWAConstants.USER_MEMBERGROUPS_PROPERTY, String.join(",", memberGroupIds));
+                    sakaiProxy.setUserProperties(userEid, userProperties);
+                }
+            }
+
+            //Remove the groups for the contacts which doesn't belong to any group
+            List<Contact> contactList = contactProxy.getAllContactsFromAccount(accessToken.getAccess_token(), accountId);
+            for(Contact contact : contactList) {
+                if (!userGroupsMap.containsKey(contact.getId())) {
+                    Map <String, String> userProperties = new HashMap<String, String>();
+                    String userEid = contact.getEmail();
+                    log.info("------User {} doesn't have groups, removing the assigned groups", userEid);
+                    userProperties.put(SakaiWAConstants.USER_MEMBERGROUPS_PROPERTY, "");
+                    sakaiProxy.setUserProperties(userEid, userProperties);
+                }
+            }
+        }
+
         /*************************************************
          ********* Destroying the auth token *************
          *************************************************/
@@ -150,13 +149,11 @@ public class WAContactsSyncJob implements Job {
         /*
          * Logging the results of the execution 
          */
-        log.info("--Total users processed {}",total);
-        log.info("--Users processed successfully {}",successUsers);
-        log.info("--Failed users {}",failedUsers);
+        log.info("--Total groups processed {}",total);
         long endExecutionTime = System.nanoTime();
         log.info("--Job executed in {} seconds",((double) (endExecutionTime - startExecutionTime)/ 1000000000.0));
-        log.info("-------END Executing WAContactsSyncJob-------");
-        
+        log.info("-------END Executing WAMemberGroupsSyncJob-------");
+
         //Invalidate the session
         sakaiProxy.invalidateCurrentSession();
     }

@@ -18,56 +18,56 @@ import com.longsight.wa.model.Account;
 
 @Slf4j
 public class AccountProxy {
-	
+    
     public List<Account> getAccounts(String authToken) {
-		ClientConfig config = new ClientConfig();
+        ClientConfig config = new ClientConfig();
 
-		Client client = ClientBuilder.newClient(config);
+        Client client = ClientBuilder.newClient(config);
 
-		WebTarget target = client.target("https://api.wildapricot.org/v2.1/Accounts");
-		Response response = target.request().
-				accept(MediaType.APPLICATION_FORM_URLENCODED).
-		        header("Authorization", "Bearer " + authToken).                
-		        get();
-		
-		String responseString = response.readEntity(String.class);
-		
-		if(response.getStatus() == 200) {
-			try {
-				Account[] accounts = new ObjectMapper().readValue(responseString, Account[].class);
-				return Arrays.asList(accounts);
-			} catch (Exception e) {
-				log.error("Error mapping the response into an List<Account> {}", e);
-			}
-		}else {
-			log.error("Error code: {} {}", response.getStatus(), responseString);
-		}
-		return new ArrayList<Account>();
-	}
+        WebTarget target = client.target("https://api.wildapricot.org/v2.1/Accounts");
+        Response response = target.request().
+                accept(MediaType.APPLICATION_FORM_URLENCODED).
+                header("Authorization", "Bearer " + authToken).                
+                get();
+        
+        String responseString = response.readEntity(String.class);
+        
+        if(response.getStatus() == 200) {
+            try {
+                Account[] accounts = new ObjectMapper().readValue(responseString, Account[].class);
+                return Arrays.asList(accounts);
+            } catch (Exception e) {
+                log.error("Error mapping the response into an List<Account> {}", e);
+            }
+        }else {
+            log.error("Error code: {} {}", response.getStatus(), responseString);
+        }
+        return new ArrayList<Account>();
+    }
 
     public Account getAccount(String authToken, String accountId) {
-		ClientConfig config = new ClientConfig();
+        ClientConfig config = new ClientConfig();
 
-		Client client = ClientBuilder.newClient(config);
+        Client client = ClientBuilder.newClient(config);
 
-		WebTarget target = client.target(String.format("https://api.wildapricot.org/v2.1/Accounts/%s", accountId));
-		Response response = target.request().
-				accept(MediaType.APPLICATION_FORM_URLENCODED).
-		        header("Authorization", "Bearer " + authToken).                
-		        get();
-		
-		String responseString = response.readEntity(String.class);
-		
-		if(response.getStatus() == 200) {
-			try {
-				Account account = new ObjectMapper().readValue(responseString, Account.class);
-				return account;
-			} catch (Exception e) {
-				log.error("Error mapping the response into an Account {}", e);
-			}
-		}else {
-			log.error("Error code: {} {}", response.getStatus(), responseString);
-		}
-		return null;
-	}
+        WebTarget target = client.target(String.format("https://api.wildapricot.org/v2.1/Accounts/%s", accountId));
+        Response response = target.request().
+                accept(MediaType.APPLICATION_FORM_URLENCODED).
+                header("Authorization", "Bearer " + authToken).                
+                get();
+        
+        String responseString = response.readEntity(String.class);
+        
+        if(response.getStatus() == 200) {
+            try {
+                Account account = new ObjectMapper().readValue(responseString, Account.class);
+                return account;
+            } catch (Exception e) {
+                log.error("Error mapping the response into an Account {}", e);
+            }
+        }else {
+            log.error("Error code: {} {}", response.getStatus(), responseString);
+        }
+        return null;
+    }
 }

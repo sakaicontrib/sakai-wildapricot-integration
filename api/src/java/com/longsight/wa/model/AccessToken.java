@@ -14,10 +14,10 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class AccessToken {
-	private String access_token;
-	private String token_type;
-	private int expires_in;
-	private String refresh_token;
-	@JsonProperty("Permissions")
-	private List<Permissions> permissions;
+    private String access_token;
+    private String token_type;
+    private int expires_in;
+    private String refresh_token;
+    @JsonProperty("Permissions")
+    private List<Permissions> permissions;
 }
