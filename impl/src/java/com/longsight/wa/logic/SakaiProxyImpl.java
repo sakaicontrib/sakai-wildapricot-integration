@@ -1,7 +1,5 @@
 package com.longsight.wa.logic;
 
-import java.util.Collection;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -10,11 +8,11 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
+import org.sakaiproject.accountvalidator.logic.ValidationLogic;
 import org.sakaiproject.authz.api.Role;
 import org.sakaiproject.authz.api.SecurityService;
 import org.sakaiproject.component.api.ServerConfigurationService;
 import org.sakaiproject.db.api.SqlService;
-import org.sakaiproject.email.api.EmailService;
 import org.sakaiproject.entity.api.ResourceProperties;
 import org.sakaiproject.event.api.EventTrackingService;
 import org.sakaiproject.site.api.Site;
@@ -24,7 +22,6 @@ import org.sakaiproject.tool.api.SessionManager;
 import org.sakaiproject.user.api.User;
 import org.sakaiproject.user.api.UserDirectoryService;
 import org.sakaiproject.user.api.UserEdit;
-import org.sakaiproject.user.api.UserNotDefinedException;
 
 /**
  * Implementation of our SakaiProxyImpl API
@@ -97,26 +94,6 @@ public class SakaiProxyImpl implements SakaiProxy {
     @Override
     public boolean isValidSite(String siteId){
         return siteService.siteExists(siteId);
-    }
-
-    @Override
-    public void sendEmailToUsers(String[] recipients, String subject, String content){
-        Collection<User> userCollection = convertUserStringArrayToUserCollection(recipients);
-        Collection<String> subjectCollection = new HashSet<String>();
-        subjectCollection.add(subject);
-        emailService.sendToUsers(userCollection, subjectCollection, content);
-    }
-
-    private Collection<User> convertUserStringArrayToUserCollection(String[] input){
-        Collection<User> userCollection = new HashSet<User>();
-        for(int i = 0; i<input.length ; i++){
-            try {
-                userCollection.add(userDirectoryService.getUserByEid(input[i]));
-            } catch (UserNotDefinedException e) {
-                continue;
-            }
-        }
-        return userCollection;
     }
 
     @Override
@@ -312,7 +289,14 @@ public class SakaiProxyImpl implements SakaiProxy {
     private List<String> getSitesWithProperty(String property, String value){
     	return sqlService.dbRead(String.format(SakaiWAConstants.SQL_GET_SITES_WITH_PROPERTY, property, value));
     }
-
+    
+    public void notifyNewUserEmail(String userEid) {
+    	try {
+    		validationLogic.createValidationAccount(userDirectoryService.getUserByEid(userEid).getId(), true);
+		} catch (Exception e) {
+			log.error("Fatal error sending the notification, user {} not exists", userEid);
+		}
+    }
 
     /**
      * init - perform any actions required here for when this bean starts up
@@ -338,9 +322,9 @@ public class SakaiProxyImpl implements SakaiProxy {
 
     @Getter @Setter
     private SiteService siteService;
-
+    
     @Getter @Setter
-    private EmailService emailService;
+    private ValidationLogic validationLogic;
     
     @Getter @Setter
     private SqlService sqlService;

@@ -11,6 +11,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.quartz.Job;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
+import org.sakaiproject.util.PasswordCheck;
 
 import com.longsight.wa.jobs.utils.JobUtils;
 import com.longsight.wa.logic.SakaiProxy;
@@ -109,12 +110,15 @@ public class WAContactsSyncJob implements Job {
                     }
                 }else {
                     log.info("--------Contact doesn't exist, attempting to create it: {} ", contact);
-                    //UserEid not exists, create it                    
-                    boolean created = sakaiProxy.addUser(contact.getEmail(), contact.getFirstName(), contact.getLastName(), contact.getEmail(), "12345", defaultUserType);
+                    //UserEid not exists, create it
+                    String newUserPassword = PasswordCheck.generatePassword();
+                    boolean created = sakaiProxy.addUser(contact.getEmail(), contact.getFirstName(), contact.getLastName(), contact.getEmail(), newUserPassword, defaultUserType);
                     if(created) {
                         log.info("--------Contact created successfully: {} ",contact);
                         successUsers++;
                         updateUserProperties = true;
+                        //Send a notification to the user.
+                        sakaiProxy.notifyNewUserEmail(contact.getEmail());
                     }else {
                         log.error("--------Error creating the contact: {} ",contact);
                         failedUsers++;

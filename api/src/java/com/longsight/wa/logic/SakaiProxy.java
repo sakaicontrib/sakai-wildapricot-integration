@@ -95,13 +95,7 @@ public interface SakaiProxy {
      * @return
      */
     public boolean isValidSite(String siteId);
-    
-    /**
-     * Send email to users
-     * @return
-     */
-    public void sendEmailToUsers(String[] recipients, String subject, String content);
-    
+
     /**
      * Get the server name
      * @return
@@ -203,4 +197,10 @@ public interface SakaiProxy {
      * @return list with all the sites which belongs to a member group
      */
     public List<String> getSitesForMemberGroup(String memberGroup);
+    
+    /**
+     * Sends the user an email that has been added to Sakai
+     */
+    
+    public void notifyNewUserEmail(String userEid);
 }
