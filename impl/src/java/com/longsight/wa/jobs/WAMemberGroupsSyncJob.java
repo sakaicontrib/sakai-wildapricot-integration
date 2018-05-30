@@ -57,8 +57,6 @@ public class WAMemberGroupsSyncJob implements Job {
             return;
         }
         
-        Map<String, List<String>> userGroupsMap = new HashMap<String, List<String>>();
-        
         log.info("-------START Executing WAMemberGroupsSyncJob-------");
         
         /*************************************************
@@ -89,6 +87,9 @@ public class WAMemberGroupsSyncJob implements Job {
         log.info("--Found {} accounts in WA.", accountList.size());
 
         for(Account account : accountList) {
+
+        	Map<String, List<String>> userGroupsMap = new HashMap<String, List<String>>();
+
             String accountId = account.getId();
             List<MemberGroup> memberGroups = memberGroupProxy.getMemberGroups(accessToken.getAccess_token(), accountId);
             log.info("----Found {} memberGroups for the account {}.", memberGroups.size(), accountId);

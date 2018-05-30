@@ -2,6 +2,7 @@ package com.longsight.wa.logic;
 
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -12,13 +13,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.sakaiproject.authz.api.Role;
 import org.sakaiproject.authz.api.SecurityService;
 import org.sakaiproject.component.api.ServerConfigurationService;
+import org.sakaiproject.db.api.SqlService;
 import org.sakaiproject.email.api.EmailService;
 import org.sakaiproject.entity.api.ResourceProperties;
 import org.sakaiproject.event.api.EventTrackingService;
-import org.sakaiproject.exception.IdInvalidException;
-import org.sakaiproject.exception.IdUnusedException;
-import org.sakaiproject.exception.IdUsedException;
-import org.sakaiproject.exception.PermissionException;
 import org.sakaiproject.site.api.Site;
 import org.sakaiproject.site.api.SiteService;
 import org.sakaiproject.tool.api.Session;
@@ -262,12 +260,12 @@ public class SakaiProxyImpl implements SakaiProxy {
         try {
             User user = userDirectoryService.getUserByEid(userEid);
             editUser = userDirectoryService.editUser(user.getId());
-            boolean status = editUser.getProperties().getBooleanProperty(SakaiWAConstants.SAKAI_STATUS_PROPERTY);
+            String status = editUser.getProperties().getProperty(SakaiWAConstants.SAKAI_STATUS_PROPERTY);
             userDirectoryService.cancelEdit(editUser);
-            return status;
+            return "true".equals(status) ? false : true;
         } catch (Exception e) {
             userDirectoryService.cancelEdit(editUser);
-            log.error("setUserProperties: Error setting the properties for the userEid {} - {}", userEid, e.toString());
+            log.error("isUserEnabled: Error checking if the user is enabled {} - {}", userEid, e.toString());
         }
         return false;        
     }
@@ -286,10 +284,35 @@ public class SakaiProxyImpl implements SakaiProxy {
             return true;
         } catch (Exception e) {
             userDirectoryService.cancelEdit(editUser);
-            log.error("setUserProperties: Error setting the properties for the userEid {} - {}", userEid, e.toString());
+            log.error("setUserStatus: Error setting the user status for the userEid {} - {}", userEid, e.toString());
         }
         return false;        
     }
+    
+    @Override
+    public List<User> getUsers(){
+    	return userDirectoryService.getUsers();
+    }
+    
+    @Override
+    public List<Site> getUserSites(String userId){
+    	return siteService.getUserSites(false, userId);
+    }
+    
+    @Override
+    public List<String> getSitesForMembershipLevel(String membershipLevel){
+    	return getSitesWithProperty(SakaiWAConstants.USER_MEMBERSHIPLEVEL_PROPERTY, membershipLevel);
+    }
+
+    @Override
+    public List<String> getSitesForMemberGroup(String memberGroup){
+    	return getSitesWithProperty(SakaiWAConstants.USER_MEMBERGROUPS_PROPERTY, memberGroup);
+    }
+    
+    private List<String> getSitesWithProperty(String property, String value){
+    	return sqlService.dbRead(String.format(SakaiWAConstants.SQL_GET_SITES_WITH_PROPERTY, property, value));
+    }
+
 
     /**
      * init - perform any actions required here for when this bean starts up
@@ -318,4 +341,7 @@ public class SakaiProxyImpl implements SakaiProxy {
 
     @Getter @Setter
     private EmailService emailService;
+    
+    @Getter @Setter
+    private SqlService sqlService;
 }

@@ -1,6 +1,10 @@
 package com.longsight.wa.logic;
 
+import java.util.List;
 import java.util.Map;
+
+import org.sakaiproject.site.api.Site;
+import org.sakaiproject.user.api.User;
 
 /**
  * An interface to abstract all Sakai related API calls in a central method that can be injected into our app.
@@ -175,4 +179,28 @@ public interface SakaiProxy {
      * @return userEid as string, null if not exists
      */
     public boolean setUserProperties(String userEid, Map<String, String> userProperties);
+
+    /**
+     * Gets the Sakai user list
+     * @return list with all the Sakai users
+     */
+    public List<User> getUsers();
+    
+    /**
+     * Gets the sites where the user has access
+     * @return list with all the sites where the users has access
+     */
+    public List<Site> getUserSites(String userId);
+
+    /**
+     * Gets the sites which belongs to a membership level
+     * @return list with all the sites which belongs to a membership level
+     */
+    public List<String> getSitesForMembershipLevel(String membershipLevel);
+
+    /**
+     * Gets the sites which belongs to a member group
+     * @return list with all the sites which belongs to a member group
+     */
+    public List<String> getSitesForMemberGroup(String memberGroup);
 }

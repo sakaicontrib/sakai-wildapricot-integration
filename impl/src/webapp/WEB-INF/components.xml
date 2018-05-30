@@ -15,6 +15,7 @@
         <property name="serverConfigurationService" ref="org.sakaiproject.component.api.ServerConfigurationService" />
         <property name="siteService" ref="org.sakaiproject.site.api.SiteService" />
         <property name="emailService" ref="org.sakaiproject.email.api.EmailService" />
+        <property name="sqlService" ref="org.sakaiproject.db.api.SqlService" />        
     </bean>
 
     <bean id="com.longsight.wa.jobs.WAContactsSyncJob"
@@ -38,9 +39,9 @@
             <ref bean="org.sakaiproject.api.app.scheduler.SchedulerManager" />
         </property>
 
-   </bean>
+    </bean>
    
-   <bean id="com.longsight.wa.jobs.WAMemberGroupsSyncJob"
+    <bean id="com.longsight.wa.jobs.WAMemberGroupsSyncJob"
         class="com.longsight.wa.jobs.WAMemberGroupsSyncJob">
         <property name="sakaiProxy" ref="com.longsight.wa.logic.SakaiProxy" />
     </bean>
@@ -61,5 +62,30 @@
             <ref bean="org.sakaiproject.api.app.scheduler.SchedulerManager" />
         </property>
 
-   </bean>
+    </bean>
+
+    <bean id="com.longsight.wa.jobs.WACourseMembershipSyncJob"
+        class="com.longsight.wa.jobs.WACourseMembershipSyncJob">
+        <property name="sakaiProxy" ref="com.longsight.wa.logic.SakaiProxy" />
+    </bean>
+
+    <bean id="org.sakaiproject.api.app.scheduler.JobBeanWrapper.com.longsight.wa.jobs.WACourseMembershipSyncJob"
+        class="org.sakaiproject.component.app.scheduler.jobs.SpringJobBeanWrapper"
+        init-method="init">
+
+        <property name="beanId">
+            <value>com.longsight.wa.jobs.WACourseMembershipSyncJob</value>
+        </property>
+
+        <property name="jobName">
+            <value>Wild Apricot Course Membership Sync Job</value>
+        </property>
+
+        <property name="schedulerManager">
+            <ref bean="org.sakaiproject.api.app.scheduler.SchedulerManager" />
+        </property>
+
+    </bean>
+   
+   
 </beans>
