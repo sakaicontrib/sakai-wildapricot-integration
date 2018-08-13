@@ -22,4 +22,6 @@ public class SakaiWAConstants {
     public static final String SAKAI_STATUS_PROPERTY = "disabled";
     
     public static final String SQL_GET_SITES_WITH_PROPERTY = "select site_id from sakai_site_property where name='%s' and value like '%%%s%%';";
+    
+    public static final String SQL_GET_PROPERTY_VALUE = "select value from sakai_site_property where name='%s' and site_id='%s';";
 }

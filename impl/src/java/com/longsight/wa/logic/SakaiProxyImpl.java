@@ -1,5 +1,6 @@
 package com.longsight.wa.logic;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -17,6 +18,8 @@ import org.sakaiproject.entity.api.ResourceProperties;
 import org.sakaiproject.event.api.EventTrackingService;
 import org.sakaiproject.site.api.Site;
 import org.sakaiproject.site.api.SiteService;
+import org.sakaiproject.site.api.SiteService.SelectionType;
+import org.sakaiproject.site.api.SiteService.SortType;
 import org.sakaiproject.tool.api.Session;
 import org.sakaiproject.tool.api.SessionManager;
 import org.sakaiproject.user.api.User;
@@ -264,6 +267,36 @@ public class SakaiProxyImpl implements SakaiProxy {
             log.error("setUserStatus: Error setting the user status for the userEid {} - {}", userEid, e.toString());
         }
         return false;        
+    }
+    
+    @Override
+    public List<String> getSitesUserHasAccess(String userId) {
+		//Get the site list using queries, filtering the user workspace and the archived sites
+		String dbQuery = "select ss.site_id from SAKAI_SITE_USER ssu, SAKAI_SITE ss"
+				+ " where ssu.site_id = ss.site_id and ssu.user_id = '%s' and ssu.site_id <> concat('~',ssu.user_id)"
+				+ " and ss.published = 1"
+				+ " and not exists(select * from SAKAI_PREFERENCES sp where sp.preferences_id = ssu.user_id and sp.xml like concat('%%name=\"exclude\" value=\"',TO_BASE64(ssu.site_id),'\"%%')) order by ss.title asc;";
+		try{
+			dbQuery = String.format(dbQuery, userId);
+			return sqlService.dbRead(dbQuery);
+		}catch(Exception ex){
+			log.error("Fatal error getting the siteList "+ex);
+		}
+		return new ArrayList<String>();
+    }
+    
+    @Override
+    public List<String> getSiteMembershipLevels(String siteId) {
+    	return getPropertyValueFromSite(SakaiWAConstants.USER_MEMBERSHIPLEVEL_PROPERTY, siteId);
+    }
+
+    @Override
+    public List<String> getSiteMemberGroups(String siteId){
+    	return getPropertyValueFromSite(SakaiWAConstants.USER_MEMBERGROUPS_PROPERTY, siteId);
+    }
+    
+    private List<String> getPropertyValueFromSite(String property, String siteId){
+    	return sqlService.dbRead(String.format(SakaiWAConstants.SQL_GET_PROPERTY_VALUE, property, siteId));
     }
     
     @Override

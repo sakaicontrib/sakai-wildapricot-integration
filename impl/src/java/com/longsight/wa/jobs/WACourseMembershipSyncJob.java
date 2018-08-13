@@ -72,7 +72,7 @@ public class WACourseMembershipSyncJob implements Job {
 
         	log.info("----Processing user {}.", user.getEid());
         	total++;
-
+        	
         	List<String> sitesWithAccess = new ArrayList<String>();
 
         	//Add member to membership sites
@@ -102,6 +102,20 @@ public class WACourseMembershipSyncJob implements Job {
         	for(String siteId : sitesWithAccess) {
         		sakaiProxy.addMemberToSite(siteId, user.getEid(), defaultUserRole, true);
         		log.info("------Added member {} to site {} with role {} .", user.getEid(), siteId, defaultUserRole);
+        	}
+        	
+    		// Disable the user from old memberships
+        	List<String> userSites = sakaiProxy.getSitesUserHasAccess(user.getId());
+        	for(String siteId : userSites) {
+        		if(!sitesWithAccess.contains(siteId)) {
+        			List<String> membershipLevels = sakaiProxy.getSiteMembershipLevels(siteId);
+        			List<String> memberGroups = sakaiProxy.getSiteMemberGroups(siteId);
+        			if(!(membershipLevels.isEmpty() && memberGroups.isEmpty())) {
+        				sakaiProxy.removeMemberFromSite(siteId, user.getEid());
+        				sakaiProxy.addMemberToSite(siteId, user.getEid(), defaultUserRole, false);
+        				log.info("------Disabled member {} to site {} with role {} .", user.getEid(), siteId, defaultUserRole);
+        			}        			
+        		}
         	}
         }
 

@@ -203,4 +203,22 @@ public interface SakaiProxy {
      */
     
     public void notifyNewUserEmail(String userEid);
+    
+    /**
+     * Gets the list of sites the user can access
+     * @return The list of the sites the user can access
+     */
+    public List<String> getSitesUserHasAccess(String userId);
+    
+    /**
+     * Gets the site membership levels
+     * @return list with all the membership levels of a site
+     */
+    public List<String> getSiteMembershipLevels(String siteId);
+
+    /**
+     * Gets the site member groups
+     * @return list with all the member groups of a site
+     */
+    public List<String> getSiteMemberGroups(String siteId);
 }
