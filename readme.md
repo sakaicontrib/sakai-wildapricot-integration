@@ -31,6 +31,10 @@ Due to the two first use cases, all the Sakai users have updated data, including
 
 Sakai process every user and grants access to the content which the user has access too, including courses or sites which belongs to a membership level or a member group.
 
+### Event registrations sync
+
+The integration supports events and event registrations, when a wa user registers in an event, Sakai will enroll the user in the courses associated to that event. If a member of the course is not registered in a particular event, the member will be removed from the course in the next execution.
+
 ## Technical documentation
 ### Integration configuration
 Set the following properties in the **sakai.properties** file:
@@ -63,6 +67,7 @@ log.config.3 = INFO.com.longsight.wa.jobs.WACourseMembershipSyncJob
 Courses and sites access is granted by configuration, you can assign membership levels or member groups to courses easily. This needs to be done by **site properties**, edit the site and assign one of this properties.
 * **wa-membershiplevel**. Comma separated list of membership level identifiers (Retrieved from WA)
 * **wa-membergroups**. Comma separated list of members groups identifiers (Retrieved from WA)
+* **wa-events**. Comma separated list of event identifiers (Retrieved from WA)
 
 Example:
 A user which belongs to the membership level 12345 will have access to all the courses with 12345 in its **wa-membershiplevel** property.
@@ -70,6 +75,8 @@ A user which belongs to the membership level 12345 will have access to all the c
 Same for groups, a user which belongs to the group 12345 will have access to all the courses with 12345 in its **wa-membergroups** property.
 
 You can get the Membership level identifier or the member group identifier from WA urls, **they are integers like mLevelId=971975 or mGroupId=447081**.
+
+Users registered in a particular event will have access to courses configured to that eventId using the property **wa-events**. You can get the Event identifier from WA urls, **they are integers like eventId=971975**.
 
 ### Jobs
 The integration and the three use cases basically rely on synchronization jobs, which are executed periodically. Create three jobs in the Sakai instance using the **Job Scheduler** tool and assign them some triggers, one valid configuration could be execute them every 15 minutes but this configuration is totally flexible.

@@ -1,10 +1,7 @@
 package com.longsight.wa.jobs;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
 
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -14,17 +11,18 @@ import org.quartz.Job;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
 
-import com.longsight.wa.jobs.utils.JobUtils;
 import com.longsight.wa.logic.SakaiProxy;
 import com.longsight.wa.logic.SakaiWAConstants;
+import com.longsight.wa.jobs.utils.JobUtils;
 import com.longsight.wa.model.AccessToken;
 import com.longsight.wa.model.Account;
 import com.longsight.wa.model.Contact;
-import com.longsight.wa.model.MemberGroup;
+import com.longsight.wa.model.Event;
+import com.longsight.wa.model.EventRegistration;
 import com.longsight.wa.proxy.AccountProxy;
 import com.longsight.wa.proxy.AuthenticationProxy;
 import com.longsight.wa.proxy.ContactProxy;
-import com.longsight.wa.proxy.MemberGroupProxy;
+import com.longsight.wa.proxy.EventProxy;
 
 /**
  * WA MemberGroups Sync job
@@ -33,7 +31,7 @@ import com.longsight.wa.proxy.MemberGroupProxy;
  *
  */
 @Slf4j
-public class WAMemberGroupsSyncJob implements Job {
+public class WAEventSyncJob implements Job {
 
     public void execute(JobExecutionContext jobExecutionContext) throws JobExecutionException {
         //Abort if there is another execution of the job
@@ -42,8 +40,8 @@ public class WAMemberGroupsSyncJob implements Job {
         //Proxy services
         AuthenticationProxy authenticationProxy = new AuthenticationProxy();
         AccountProxy accountProxy = new AccountProxy();
+        EventProxy eventProxy = new EventProxy();
         ContactProxy contactProxy = new ContactProxy();
-        MemberGroupProxy memberGroupProxy = new MemberGroupProxy();
 
         //Control variables
         int total = 0;
@@ -51,13 +49,15 @@ public class WAMemberGroupsSyncJob implements Job {
 
         //Session variables
         String adminUserEid = sakaiProxy.getConfigParam(SakaiWAConstants.DEFAULT_ADMIN_PROPERTY, SakaiWAConstants.DEFAULT_ADMIN_PROPERTY_VALUE);
+        String defaultUserRole = sakaiProxy.getConfigParam(SakaiWAConstants.DEFAULT_USERROLE_PROPERTY, SakaiWAConstants.DEFAULT_USERROLE_PROPERTY_VALUE);
+
         boolean sessionStablished = sakaiProxy.establishSession(adminUserEid);
         if(!sessionStablished){
             log.error("Fatal error: Unable to stablish a session to execute the job");
             return;
         }
         
-        log.info("-------START Executing WAMemberGroupsSyncJob-------");
+        log.info("-------START Executing WAEventSyncJob-------");
         
         /*************************************************
          ********* Getting the auth token*****************
@@ -88,58 +88,44 @@ public class WAMemberGroupsSyncJob implements Job {
 
         for(Account account : accountList) {
 
-        	Map<String, List<String>> userGroupsMap = new HashMap<String, List<String>>();
-
             String accountId = account.getId();
-            List<MemberGroup> memberGroups = memberGroupProxy.getMemberGroups(accessToken.getAccess_token(), accountId);
-            log.info("----Found {} memberGroups for the account {}.", memberGroups.size(), accountId);
-            for(MemberGroup memberGroup : memberGroups) {
-                //Groups coming from the method getMemberGroups doesn't contain the contactIds
-                MemberGroup completeMemberGroup = memberGroupProxy.getMemberGroup(accessToken.getAccess_token(), accountId, memberGroup.getId());
-                log.info("------Found memberGroup: {}", completeMemberGroup);
-                total++;
+            List<Event> accountEventList = eventProxy.getEventList(accessToken.getAccess_token(), accountId);
+            log.info("----Found {} events for the account {}.", accountEventList.size(), accountId);
 
-                //If the group is empty, just skip it.
-                if(completeMemberGroup.getContactIds() == null) {
-                    continue;
-                }
+            for(Event event : accountEventList) {
+            	String eventId = event.getId();
+            	log.info("------Found event {} with id {}.", event.getName(), eventId);
 
-                for(String contactId : completeMemberGroup.getContactIds()) {
-                    List<String> currentGroupsList = userGroupsMap.get(contactId);
+            	List<EventRegistration> eventRegistrationList = eventProxy.getEventRegistration(accessToken.getAccess_token(), accountId, eventId);
+            	log.info("------Found event {} registrations in the event id {}.", eventRegistrationList.size(), eventId);
 
-                    if(currentGroupsList == null) {
-                        currentGroupsList = new ArrayList<String>();
-                    }
+            	//Grab the users that are registered in this particular event
+            	ArrayList<String> usersList = new ArrayList<String>();
+            	for(EventRegistration eventRegistration : eventRegistrationList) {
+            		String contactId = eventRegistration.getContact().getId();
+            		Contact contact = contactProxy.getContactFromAccount(accessToken.getAccess_token(), accountId, contactId);
+            		usersList.add(contact.getEmail());
+            	}
 
-                    currentGroupsList.add(completeMemberGroup.getId());
-                    userGroupsMap.put(contactId, currentGroupsList);
-                }
-            }
-
-            //Add the current groups to each user
-            for(Entry<String, List<String>> userMap : userGroupsMap.entrySet()) {
-                String contactId = userMap.getKey();
-                List<String> memberGroupIds = userMap.getValue();
-                Contact contact = contactProxy.getContactFromAccount(accessToken.getAccess_token(), accountId, contactId);
-                if(contact !=null) {
-                    Map <String, String> userProperties = new HashMap<String, String>();
-                    String userEid = contact.getEmail();
-                    log.info("------Assign to this user {} these groups {}", userEid, memberGroupIds);
-                    userProperties.put(SakaiWAConstants.WA_MEMBERGROUPS_PROPERTY, String.join(",", memberGroupIds));
-                    sakaiProxy.setUserProperties(userEid, userProperties);
-                }
-            }
-
-            //Remove the groups for the contacts which doesn't belong to any group
-            List<Contact> contactList = contactProxy.getAllContactsFromAccount(accessToken.getAccess_token(), accountId);
-            for(Contact contact : contactList) {
-                if (!userGroupsMap.containsKey(contact.getId())) {
-                    Map <String, String> userProperties = new HashMap<String, String>();
-                    String userEid = contact.getEmail();
-                    log.info("------User {} doesn't have groups, removing the assigned groups", userEid);
-                    userProperties.put(SakaiWAConstants.WA_MEMBERGROUPS_PROPERTY, "");
-                    sakaiProxy.setUserProperties(userEid, userProperties);
-                }
+            	//Grab from Sakai the sites that belong to a particular event
+            	List<String> siteList = sakaiProxy.getSitesForEvent(eventId);
+            	log.info("------Found {} sites in Sakai for the event id {}.", siteList.size(), eventId);
+            	for(String siteId : siteList) {
+            		//Remove all the users from the site that are not in the event
+            		List<String> currentSiteMembers = sakaiProxy.getSiteMembers(siteId, defaultUserRole);
+            		for(String userEid : currentSiteMembers) {
+            			if(!usersList.contains(userEid)) {
+            				log.info("--------Removing user {} from the site {}.", userEid, siteId);
+            				sakaiProxy.removeMemberFromSite(siteId, userEid);
+            			}
+            		}
+            		
+            		//Add all the users that are registered in the event to the site
+            		for(String userEid : usersList) {
+            			log.info("--------Adding user {} in the site {}.", userEid, siteId);
+            			sakaiProxy.addMemberToSite(siteId, userEid, defaultUserRole, true);
+            		}            		
+            	}
             }
         }
 
@@ -150,10 +136,10 @@ public class WAMemberGroupsSyncJob implements Job {
         /*
          * Logging the results of the execution 
          */
-        log.info("--Total groups processed {}",total);
+        log.info("--Total events processed {}",total);
         long endExecutionTime = System.nanoTime();
         log.info("--Job executed in {} seconds",((double) (endExecutionTime - startExecutionTime)/ 1000000000.0));
-        log.info("-------END Executing WAMemberGroupsSyncJob-------");
+        log.info("-------END Executing WAEventSyncJob-------");
 
         //Invalidate the session
         sakaiProxy.invalidateCurrentSession();

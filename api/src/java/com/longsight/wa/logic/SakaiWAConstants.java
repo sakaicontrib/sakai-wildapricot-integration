@@ -13,9 +13,10 @@ public class SakaiWAConstants {
     public static final String DEFAULT_USERROLE_PROPERTY = "wa.sync.default.role";
     public static final String DEFAULT_USERROLE_PROPERTY_VALUE = "access";
     
-    public static final String USER_ORGANIZATION_PROPERTY = "wa-organization";
-    public static final String USER_MEMBERSHIPLEVEL_PROPERTY = "wa-membershiplevel";
-    public static final String USER_MEMBERGROUPS_PROPERTY = "wa-membergroups";
+    public static final String WA_ORGANIZATION_PROPERTY = "wa-organization";
+    public static final String WA_MEMBERSHIPLEVEL_PROPERTY = "wa-membershiplevel";
+    public static final String WA_MEMBERGROUPS_PROPERTY = "wa-membergroups";
+    public static final String WA_EVENTS_PROPERTY = "wa-events";
     
     public static final String WA_ACTIVE_STATUS = "Active";
     

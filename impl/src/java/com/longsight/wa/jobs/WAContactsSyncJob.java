@@ -136,10 +136,10 @@ public class WAContactsSyncJob implements Job {
                     log.info("--------Setting the extra properties for the contact {} ", contact);
                     Map <String, String> userProperties = new HashMap<String, String>();
                     if(StringUtils.isNotEmpty(contact.getOrganization())) {
-                        userProperties.put(SakaiWAConstants.USER_ORGANIZATION_PROPERTY, contact.getOrganization());
+                        userProperties.put(SakaiWAConstants.WA_ORGANIZATION_PROPERTY, contact.getOrganization());
                     }
                     if(contact.getMembershipLevel() != null && StringUtils.isNotEmpty(contact.getMembershipLevel().getId())) {
-                        userProperties.put(SakaiWAConstants.USER_MEMBERSHIPLEVEL_PROPERTY, contact.getMembershipLevel().getId());
+                        userProperties.put(SakaiWAConstants.WA_MEMBERSHIPLEVEL_PROPERTY, contact.getMembershipLevel().getId());
                     }
                     sakaiProxy.setUserProperties(contact.getEmail(), userProperties);
                 }

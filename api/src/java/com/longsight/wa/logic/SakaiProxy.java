@@ -199,6 +199,12 @@ public interface SakaiProxy {
     public List<String> getSitesForMemberGroup(String memberGroup);
     
     /**
+     * Gets the sites which belongs to an event
+     * @return list with all the sites which belongs to an event
+     */
+    public List<String> getSitesForEvent(String eventId);
+    
+    /**
      * Sends the user an email that has been added to Sakai
      */
     
@@ -220,5 +226,11 @@ public interface SakaiProxy {
      * Gets the site member groups
      * @return list with all the member groups of a site
      */
-    public List<String> getSiteMemberGroups(String siteId);
+    public List<String> getSiteMemberGroups(String siteId);  
+    
+    /**
+     * Gets the site members of a determined role as list of user eids
+     * @return site members as List
+     */
+    public List<String> getSiteMembers(String siteId, String roleId);
 }

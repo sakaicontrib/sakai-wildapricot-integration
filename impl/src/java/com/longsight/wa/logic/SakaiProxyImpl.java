@@ -10,12 +10,14 @@ import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
 import org.sakaiproject.accountvalidator.logic.ValidationLogic;
+import org.sakaiproject.authz.api.Member;
 import org.sakaiproject.authz.api.Role;
 import org.sakaiproject.authz.api.SecurityService;
 import org.sakaiproject.component.api.ServerConfigurationService;
 import org.sakaiproject.db.api.SqlService;
 import org.sakaiproject.entity.api.ResourceProperties;
 import org.sakaiproject.event.api.EventTrackingService;
+import org.sakaiproject.exception.IdUnusedException;
 import org.sakaiproject.site.api.Site;
 import org.sakaiproject.site.api.SiteService;
 import org.sakaiproject.site.api.SiteService.SelectionType;
@@ -287,12 +289,12 @@ public class SakaiProxyImpl implements SakaiProxy {
     
     @Override
     public List<String> getSiteMembershipLevels(String siteId) {
-    	return getPropertyValueFromSite(SakaiWAConstants.USER_MEMBERSHIPLEVEL_PROPERTY, siteId);
+    	return getPropertyValueFromSite(SakaiWAConstants.WA_MEMBERSHIPLEVEL_PROPERTY, siteId);
     }
 
     @Override
     public List<String> getSiteMemberGroups(String siteId){
-    	return getPropertyValueFromSite(SakaiWAConstants.USER_MEMBERGROUPS_PROPERTY, siteId);
+    	return getPropertyValueFromSite(SakaiWAConstants.WA_MEMBERGROUPS_PROPERTY, siteId);
     }
     
     private List<String> getPropertyValueFromSite(String property, String siteId){
@@ -311,16 +313,38 @@ public class SakaiProxyImpl implements SakaiProxy {
     
     @Override
     public List<String> getSitesForMembershipLevel(String membershipLevel){
-    	return getSitesWithProperty(SakaiWAConstants.USER_MEMBERSHIPLEVEL_PROPERTY, membershipLevel);
+    	return getSitesWithProperty(SakaiWAConstants.WA_MEMBERSHIPLEVEL_PROPERTY, membershipLevel);
     }
 
     @Override
     public List<String> getSitesForMemberGroup(String memberGroup){
-    	return getSitesWithProperty(SakaiWAConstants.USER_MEMBERGROUPS_PROPERTY, memberGroup);
+    	return getSitesWithProperty(SakaiWAConstants.WA_MEMBERGROUPS_PROPERTY, memberGroup);
     }
+    
+	@Override
+    public List<String> getSitesForEvent(String eventId){
+		return getSitesWithProperty(SakaiWAConstants.WA_EVENTS_PROPERTY, eventId);
+	}
     
     private List<String> getSitesWithProperty(String property, String value){
     	return sqlService.dbRead(String.format(SakaiWAConstants.SQL_GET_SITES_WITH_PROPERTY, property, value));
+    }
+    
+    @Override
+    public List<String> getSiteMembers(String siteId, String roleId){
+    	ArrayList<String> siteMembers = new ArrayList<String>();
+    	Site site;
+		try {
+			site = siteService.getSite(siteId);
+	    	for(Member member : site.getMembers()) {
+	    		if(roleId.equals(member.getRole().getId())){
+	    			siteMembers.add(member.getUserEid());
+	    		}
+	    	}
+		} catch (IdUnusedException e) {
+			log.error("Error getting site members {}", e);
+		}
+    	return siteMembers;    	
     }
     
     public void notifyNewUserEmail(String userEid) {

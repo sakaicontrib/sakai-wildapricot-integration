@@ -62,8 +62,8 @@ public class WACourseMembershipSyncJob implements Job {
         	}
 
         	//Get the WA membership level and the member groups.
-        	String userMembershipLevel = user.getProperties().getProperty(SakaiWAConstants.USER_MEMBERSHIPLEVEL_PROPERTY);
-        	String userMemberGroups = user.getProperties().getProperty(SakaiWAConstants.USER_MEMBERGROUPS_PROPERTY);
+        	String userMembershipLevel = user.getProperties().getProperty(SakaiWAConstants.WA_MEMBERSHIPLEVEL_PROPERTY);
+        	String userMemberGroups = user.getProperties().getProperty(SakaiWAConstants.WA_MEMBERGROUPS_PROPERTY);
 
         	//Don't process users without a membership nor member groups.
         	if(StringUtils.isEmpty(userMembershipLevel) && StringUtils.isEmpty(userMemberGroups)) {
