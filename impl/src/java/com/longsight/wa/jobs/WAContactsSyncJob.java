@@ -96,10 +96,32 @@ public class WAContactsSyncJob implements Job {
                 total++;
                 boolean updateUserProperties = false;
 
-                if(sakaiProxy.userEidExists(contact.getEmail())) {
+                String userEid = contact.getEmail();
+                boolean userEidExists = sakaiProxy.userEidExists(userEid);
+
+                String contactId = contact.getId();
+                String contactUserEid = sakaiProxy.getUserByContactId(contactId);
+                boolean contactUserExists = StringUtils.isNotEmpty(contactUserEid);
+
+                //If the user exists but the WA contactId is not associated, associate it.
+                if(userEidExists && !contactUserExists) {
+                	Map <String, String> userProperties = new HashMap<String, String>();
+                	userProperties.put(SakaiWAConstants.WA_CONTACT_PROPERTY, contactId);
+                	log.info("--------There is an existing Sakai user without the WA contact, assigning the contactId {} to the user {}. ", contactId, userEid);
+                	sakaiProxy.setUserProperties(userEid, userProperties);
+                }
+                
+                //If the user doesn't exist in Sakai but there is a user associated to the contactId, bind to this contact
+                if(!userEidExists && contactUserExists) {
+                	log.info("--------There is an existing WA contact with a different email in Sakai, updating the email from {} to {}. ", contactUserEid, userEid);
+                	sakaiProxy.changeUserEid(contactUserEid, userEid);
+                	userEidExists=true;
+                }                 
+                
+                if(userEidExists) {
                     //UserEid exists, update it
                     log.info("--------Contact exists, attempting to update it: {} ", contact);
-                    boolean updated = sakaiProxy.updateUser(contact.getEmail(), contact.getFirstName(), contact.getLastName(), contact.getEmail());
+                    boolean updated = sakaiProxy.updateUser(userEid, contact.getFirstName(), contact.getLastName(), contact.getEmail());
                     if(updated) {
                         log.info("--------Contact updated successfully: {} ",contact);
                         successUsers++;
@@ -112,7 +134,7 @@ public class WAContactsSyncJob implements Job {
                     log.info("--------Contact doesn't exist, attempting to create it: {} ", contact);
                     //UserEid not exists, create it
                     String newUserPassword = PasswordCheck.generatePassword();
-                    boolean created = sakaiProxy.addUser(contact.getEmail(), contact.getFirstName(), contact.getLastName(), contact.getEmail(), newUserPassword, defaultUserType);
+                    boolean created = sakaiProxy.addUser(userEid, contact.getFirstName(), contact.getLastName(), contact.getEmail(), newUserPassword, defaultUserType);
                     if(created) {
                         log.info("--------Contact created successfully: {} ",contact);
                         successUsers++;
@@ -128,20 +150,24 @@ public class WAContactsSyncJob implements Job {
                 //Update the user properties
                 if(updateUserProperties) {
                     
-                    //Update the user status (Enabled / disabled)
+                	//Update the user status (Enabled / disabled)
                     log.info("--------Setting the status {} for the contact {} ", contact.getStatus(), contact);
-                    sakaiProxy.setUserStatus(contact.getEmail(), SakaiWAConstants.WA_ACTIVE_STATUS.equals(contact.getStatus()) );
+                    sakaiProxy.setUserStatus(userEid, SakaiWAConstants.WA_ACTIVE_STATUS.equals(contact.getStatus()) );
                     
                     //Update the extra properties.
                     log.info("--------Setting the extra properties for the contact {} ", contact);
                     Map <String, String> userProperties = new HashMap<String, String>();
+                    
+                    //Set the WA contactId
+                	userProperties.put(SakaiWAConstants.WA_CONTACT_PROPERTY, contactId);
+
                     if(StringUtils.isNotEmpty(contact.getOrganization())) {
                         userProperties.put(SakaiWAConstants.WA_ORGANIZATION_PROPERTY, contact.getOrganization());
                     }
                     if(contact.getMembershipLevel() != null && StringUtils.isNotEmpty(contact.getMembershipLevel().getId())) {
                         userProperties.put(SakaiWAConstants.WA_MEMBERSHIPLEVEL_PROPERTY, contact.getMembershipLevel().getId());
                     }
-                    sakaiProxy.setUserProperties(contact.getEmail(), userProperties);
+                    sakaiProxy.setUserProperties(userEid, userProperties);
                 }
 
             }

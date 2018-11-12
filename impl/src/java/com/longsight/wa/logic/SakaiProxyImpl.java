@@ -217,6 +217,20 @@ public class SakaiProxyImpl implements SakaiProxy {
         }
         return null;
      }
+    
+    @Override
+    public void changeUserEid(String oldUserEid, String newUserEid) {
+    	UserEdit editUser = null;
+    	try {
+    		User user = userDirectoryService.getUserByEid(oldUserEid);
+            editUser = userDirectoryService.editUser(user.getId());
+            editUser.setEid(newUserEid);
+            userDirectoryService.commitEdit(editUser);    		
+    	}catch(Exception ex) {
+    		userDirectoryService.cancelEdit(editUser);
+    		log.error("Error changing the user Eid from {} to {}.", oldUserEid, newUserEid);
+    	}
+    }
 
     @Override
     public boolean setUserProperties(String userEid, Map<String, String> userProperties) {
@@ -234,6 +248,33 @@ public class SakaiProxyImpl implements SakaiProxy {
             log.error("setUserProperties: Error setting the properties for the userEid {} - {}", userEid, e.toString());
         }
         return false;
+    }
+    
+    @Override
+    public String getUserProperty(String userEid, String property) {
+        String propertyValue = null;
+    	try {
+            User user = userDirectoryService.getUserByEid(userEid);
+            propertyValue = user.getProperties().getProperty(property);
+        } catch (Exception e) {
+            log.error("Error getting the properties for the userEid {} - {}", userEid, property);
+        }
+    	return propertyValue;
+    }
+    
+    @Override
+    public String getUserByContactId(String contactId) {
+    	List<String> userList = this.getUsersFromProperty(SakaiWAConstants.WA_CONTACT_PROPERTY, contactId);
+    	if(userList.size() == 1) {
+    		String userId = userList.get(0);
+    		return this.getUserEidFromId(userId);    		
+    	}else {
+    		return null;
+    	}
+    }
+    
+    private List<String> getUsersFromProperty(String property, String value){
+    	return sqlService.dbRead(String.format(SakaiWAConstants.SQL_GET_USERS_WITH_PROPERTY, property, value));
     }
     
     @Override
@@ -289,16 +330,16 @@ public class SakaiProxyImpl implements SakaiProxy {
     
     @Override
     public List<String> getSiteMembershipLevels(String siteId) {
-    	return getPropertyValueFromSite(SakaiWAConstants.WA_MEMBERSHIPLEVEL_PROPERTY, siteId);
+    	return getSitesByPropertyValue(SakaiWAConstants.WA_MEMBERSHIPLEVEL_PROPERTY, siteId);
     }
 
     @Override
     public List<String> getSiteMemberGroups(String siteId){
-    	return getPropertyValueFromSite(SakaiWAConstants.WA_MEMBERGROUPS_PROPERTY, siteId);
+    	return getSitesByPropertyValue(SakaiWAConstants.WA_MEMBERGROUPS_PROPERTY, siteId);
     }
     
-    private List<String> getPropertyValueFromSite(String property, String siteId){
-    	return sqlService.dbRead(String.format(SakaiWAConstants.SQL_GET_PROPERTY_VALUE, property, siteId));
+    private List<String> getSitesByPropertyValue(String property, String siteId){
+    	return sqlService.dbRead(String.format(SakaiWAConstants.SQL_GET_SITE_VALUE_BY_PROPERTY, property, siteId));
     }
     
     @Override

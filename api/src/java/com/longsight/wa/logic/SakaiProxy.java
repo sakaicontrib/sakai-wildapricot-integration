@@ -173,6 +173,24 @@ public interface SakaiProxy {
      * @return userEid as string, null if not exists
      */
     public boolean setUserProperties(String userEid, Map<String, String> userProperties);
+    
+    /**
+     * Gets a user property
+     * @return value of the property as string, null if not exists
+     */
+    public String getUserProperty(String userEid, String property);
+    
+    /**
+     * Changes the eid of a user
+     * @return changes the EID of the user
+     */
+    public void changeUserEid(String oldUserEid, String newUserEid);
+    
+    /**
+     * Gets the user eid by contactId
+     * @return userEid by WA contactId
+     */
+    public String getUserByContactId(String contactId);
 
     /**
      * Gets the Sakai user list

@@ -17,6 +17,7 @@ public class SakaiWAConstants {
     public static final String WA_MEMBERSHIPLEVEL_PROPERTY = "wa-membershiplevel";
     public static final String WA_MEMBERGROUPS_PROPERTY = "wa-membergroups";
     public static final String WA_EVENTS_PROPERTY = "wa-events";
+    public static final String WA_CONTACT_PROPERTY = "wa-contact";
     
     public static final String WA_ACTIVE_STATUS = "Active";
     
@@ -24,5 +25,7 @@ public class SakaiWAConstants {
     
     public static final String SQL_GET_SITES_WITH_PROPERTY = "select site_id from sakai_site_property where name='%s' and value like '%%%s%%';";
     
-    public static final String SQL_GET_PROPERTY_VALUE = "select value from sakai_site_property where name='%s' and site_id='%s';";
+    public static final String SQL_GET_SITE_VALUE_BY_PROPERTY = "select value from sakai_site_property where name='%s' and site_id='%s';";
+    
+    public static final String SQL_GET_USERS_WITH_PROPERTY = "select user_id from sakai_user_property where name='%s' and value like '%%%s%%';";
 }
