@@ -104,7 +104,7 @@ public class WAEventSyncJob implements Job {
             	for(EventRegistration eventRegistration : eventRegistrationList) {
             		String contactId = eventRegistration.getContact().getId();
             		Contact contact = contactProxy.getContactFromAccount(accessToken.getAccess_token(), accountId, contactId);
-            		usersList.add(contact.getEmail());
+            		if (contact != null && contact.getEmail() != null) usersList.add(contact.getEmail());
             	}
 
             	//Grab from Sakai the sites that belong to a particular event
